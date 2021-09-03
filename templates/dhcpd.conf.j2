@@ -1,48 +1,81 @@
 # {{ ansible_managed }}
 #
-# Credit: How To Set Up A FreeBSD Wireless Access Point
-# https://www.howtoforge.com/setting_up_a_freebsd_wlan_access_point
+# Sample configuration file for ISC dhcpd
+#
 
-### GLOBAL SETTINGS
+# option definitions common to all supported networks...
 option domain-name "{{ bsd_dhcpd_domain_name }}";
+{% if bsd_dhcpd_domain_name_servers %}
 option domain-name-servers {{ bsd_dhcpd_domain_name_servers }};
-default-lease-time {{ bsd_dhcpd_default_lease_time }};
-max-lease-time {{ bsd_dhcpd_max_lease_time }};
-ddns-update-style {{ bsd_dhcpd_ddns_update_style }};
-always-broadcast {{ bsd_dhcpd_always_broadcast }};
-log-facility {{ bsd_dhcpd_log_facility }};
-{% if bsd_dhcpd_netbios_name_servers|length > 0 %}
-option netbios-name-servers {{ bsd_dhcpd_netbios_name_servers }};
 {% endif %}
+
+default-lease-time {{ bsd_dhcpd_default_lease_time }};
+{% if bsd_dhcpd_max_lease_time %}
+max-lease-time {{ bsd_dhcpd_max_lease_time }};
+{% endif %}
+
+# Use this to enble / disable dynamic dns updates globally.
+{% if bsd_dhcpd_ddns_update_style %}
+ddns-update-style {{ bsd_dhcpd_ddns_update_style }};
+{% endif %}
+
+# If this DHCP server is the official DHCP server for the local
+# network, the authoritative directive should be uncommented.
 {% if bsd_dhcpd_authoritative %}
 authoritative;
 {% endif %}
 
-### WIRED LOCAL AREA NETWORK
-subnet {{ bsd_dhcpd_wired_lan_subnet }}.0 netmask {{ bsd_dhcpd_wired_lan_netmask }} {
-range {{ bsd_dhcpd_wired_lan_subnet }}.{{ bsd_dhcpd_wired_lan_subnet_from }} {{ bsd_dhcpd_wired_lan_subnet }}.{{ bsd_dhcpd_wired_lan_subnet_to }};
-option broadcast-address {{ bsd_dhcpd_wired_lan_subnet }}.{{ bsd_dhcpd_wired_lan_subnet_broadcast }};
-option subnet-mask {{ bsd_dhcpd_wired_lan_netmask }};
-option routers {{ bsd_dhcpd_wired_lan_routers }};
+# Use this to send dhcp log messages to a different log file (you also
+# have to hack syslog.conf to complete the redirection).
+log-facility {{ bsd_dhcpd_log_facility }};
+
+{% if bsd_dhcpd_always_broadcast %}
+always-broadcast {{ bsd_dhcpd_always_broadcast }};
+{% endif %}
+
+{% if bsd_dhcpd_netbios_name_servers %}
+option netbios-name-servers {{ bsd_dhcpd_netbios_name_servers }};
+{% endif %}
+
+### Subnets
+# A subnet defintion with no entries helps the
+# DHCP server to understand the network topology.
+{% for key, value in bsd_dhcpd_subnets|dictsort %}
+# {{ key }}
+subnet {{ value.subnet }}.0 netmask {{ value.netmask }} {
+{% if 'from' in value and 'to' in value %}
+    range {{ value.subnet }}.{{ value.from }} {{ value.subnet }}.{{ value.to }};
+{% if 'default_lease_time' in value %}
+    default-lease-time {{ value.default_lease_time }};
+{% endif %}
+{% if 'max_lease_time' in value %}
+    max-lease-time {{ value.max_lease_time }};
+{% endif %}
+{% if 'broadcast' in value %}
+    option broadcast-address {{ value.subnet }}.{{ value.broadcast }};
+{% endif %}
+    option subnet-mask {{ value.netmask }};
+{% if 'routers' in value %}
+    option routers {{ value.routers }};
+{% endif %}
+{% if 'domain_name_servers' in value %}
+    option domain-name-servers {{ value.domain_name_servers }};
+{% endif %}
+{% endif %}
 }
 
-### WIRELESS NETWORK
-subnet {{ bsd_dhcpd_wireless_subnet }}.0 netmask {{ bsd_dhcpd_wireless_netmask }} {
-range {{ bsd_dhcpd_wireless_subnet }}.{{ bsd_dhcpd_wireless_subnet_from }} {{ bsd_dhcpd_wireless_subnet }}.{{ bsd_dhcpd_wireless_subnet_to }};
-option broadcast-address {{ bsd_dhcpd_wireless_subnet }}.{{ bsd_dhcpd_wireless_subnet_broadcast }};
-option subnet-mask {{ bsd_dhcpd_wireless_netmask }};
-option routers {{ bsd_dhcpd_wireless_routers }};
-}
-
-{% for (key, value) in bsd_dhcpd_assigned_ip %}
-host {{ key }} {
-        hardware ethernet {{ value.mac }};
-        fixed-address {{ value.ip }};
-}
 {% endfor %}
 
-# TODO:
-# * add general list of subnets
-# * add general list of hosts
-
-# EOF
+# Fixed IP addresses can also be specified for hosts.   These addresses
+# should not also be listed as being available for dynamic assignment.
+# Hosts for which fixed IP addresses have been specified can boot using
+# BOOTP or DHCP.   Hosts for which no fixed address is specified can only
+# be booted with DHCP, unless there is an address range on the subnet
+# to which a BOOTP client is connected which has the dynamic-bootp flag
+# set.
+{% for key, value in bsd_dhcpd_assigned_ip|dictsort %}
+host {{ key }} {
+    hardware ethernet {{ value.mac }};
+    fixed-address {{ value.ip }};
+}
+{% endfor %}
