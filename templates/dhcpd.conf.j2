@@ -42,9 +42,9 @@ option netbios-name-servers {{ bsd_dhcpd_netbios_name_servers }};
 # DHCP server to understand the network topology.
 {% for key, value in bsd_dhcpd_subnets|dictsort %}
 # {{ key }}
-subnet {{ value.subnet }}.0 netmask {{ value.netmask }} {
+subnet {{ value.subnet }} netmask {{ value.netmask }} {
 {% if 'from' in value and 'to' in value %}
-    range {{ value.subnet }}.{{ value.from }} {{ value.subnet }}.{{ value.to }};
+    range {{ value.from }} {{ value.to }};
 {% if 'default_lease_time' in value %}
     default-lease-time {{ value.default_lease_time }};
 {% endif %}
@@ -52,7 +52,7 @@ subnet {{ value.subnet }}.0 netmask {{ value.netmask }} {
     max-lease-time {{ value.max_lease_time }};
 {% endif %}
 {% if 'broadcast' in value %}
-    option broadcast-address {{ value.subnet }}.{{ value.broadcast }};
+    option broadcast-address {{ value.broadcast }};
 {% endif %}
     option subnet-mask {{ value.netmask }};
 {% if 'routers' in value %}

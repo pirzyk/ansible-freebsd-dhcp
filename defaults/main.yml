@@ -36,20 +36,20 @@ bsd_dhcpd_authoritative: true
 bsd_dhcpd_log_facility: local7
 
 # wired
-bsd_dhcpd_wired_lan_subnet: 10.1.1
-bsd_dhcpd_wired_lan_subnet_from: "100"
-bsd_dhcpd_wired_lan_subnet_to: "199"
-bsd_dhcpd_wired_lan_subnet_broadcast: "255"
-bsd_dhcpd_wired_lan_netmask: 255.255.255.0
-bsd_dhcpd_wired_lan_routers: 10.1.1.1
+bsd_dhcpd_wired_lan_subnet: '10.1.1.0'
+bsd_dhcpd_wired_lan_subnet_from: '10.1.1.100'
+bsd_dhcpd_wired_lan_subnet_to: '10.1.1.199'
+bsd_dhcpd_wired_lan_subnet_broadcast: '10.1.1.255'
+bsd_dhcpd_wired_lan_netmask: '255.255.255.0'
+bsd_dhcpd_wired_lan_routers: '10.1.1.1'
 
 # wireless
-bsd_dhcpd_wireless_subnet: 10.1.0
-bsd_dhcpd_wireless_subnet_from: "100"
-bsd_dhcpd_wireless_subnet_to: "199"
-bsd_dhcpd_wireless_subnet_broadcast: "255"
-bsd_dhcpd_wireless_netmask: 255.255.255.0
-bsd_dhcpd_wireless_routers: 10.1.0.1
+bsd_dhcpd_wireless_subnet: '10.1.0.0'
+bsd_dhcpd_wireless_subnet_from: '10.1.0.100'
+bsd_dhcpd_wireless_subnet_to: '10.1.0.199'
+bsd_dhcpd_wireless_subnet_broadcast: '10.1.0.255'
+bsd_dhcpd_wireless_netmask: '255.255.255.0'
+bsd_dhcpd_wireless_routers: '10.1.0.1'
 
 # assigned IPs
 bsd_dhcpd_assigned_ip: []
