@@ -5,6 +5,9 @@
 
 # option definitions common to all supported networks...
 option domain-name "{{ bsd_dhcpd_domain_name }}";
+{% if bsd_dhcpd_domain_search %}
+option domain-search "{{ bsd_dhcpd_domain_search | join('\", \"') }}";
+{% endif %}
 {% if bsd_dhcpd_domain_name_servers %}
 option domain-name-servers {{ bsd_dhcpd_domain_name_servers }};
 {% endif %}
