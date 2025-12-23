@@ -40,6 +40,41 @@ always-broadcast {{ bsd_dhcpd_always_broadcast }};
 option netbios-name-servers {{ bsd_dhcpd_netbios_name_servers }};
 {% endif %}
 
+### Shared subnets
+{% if bsd_dhcpd_shared_subnets is defined %}
+{% for key, value in bsd_dhcpd_shared_subnets|dictsort %}
+# {{ key }}
+shared-network {{ key }} {
+{% for key2, value2 in value|dictsort %}
+  # {{ key2 }}
+  subnet {{ value2.subnet }} netmask {{ value2.netmask }} {
+{% if 'from' in value2 and 'to' in value2 %}
+      range {{ value2.from }} {{ value2.to }};
+{% endif %}
+{% if 'default_lease_time' in value2 %}
+      default-lease-time {{ value2.default_lease_time }};
+{% endif %}
+{% if 'max_lease_time' in value2  %}
+      max-lease-time {{ value2.max_lease_time }};
+{% endif %}
+{% if 'broadcast' in value2 %}
+      option broadcast-address {{ value2.broadcast }};
+{% endif %}
+      option subnet-mask {{ value2.netmask }};
+{% if 'routers' in value2 %}
+      option routers {{ value2.routers }};
+{% endif %}
+{% if 'domain_name_servers' in value2 %}
+      option domain-name-servers {{ value2.domain_name_servers }};
+{% endif %}
+  }
+{% endfor %}
+}
+
+{% endfor %}
+{% endif %}
+
+{% if bsd_dhcpd_subnets is defined %}
 ### Subnets
 # A subnet defintion with no entries helps the
 # DHCP server to understand the network topology.
@@ -68,6 +103,7 @@ subnet {{ value.subnet }} netmask {{ value.netmask }} {
 }
 
 {% endfor %}
+{% endif %}
 
 # Fixed IP addresses can also be specified for hosts.   These addresses
 # should not also be listed as being available for dynamic assignment.
